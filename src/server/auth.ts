@@ -1,13 +1,27 @@
-import { type GetServerSidePropsContext } from "next";
-import {
-  getServerSession,
-  type NextAuthOptions,
-  type DefaultSession,
-} from "next-auth";
-import DiscordProvider from "next-auth/providers/discord";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { type GetServerSidePropsContext } from "next";
+import type {
+  Account,
+  DefaultSession,
+  NextAuthOptions,
+  Profile,
+  User,
+  Session,
+} from "next-auth";
+import { getServerSession } from "next-auth";
+
+import DiscordProvider, {
+  type DiscordProfile,
+} from "next-auth/providers/discord";
+import FacebookProvider from "next-auth/providers/facebook";
+import GitHubProvider from "next-auth/providers/github";
+import GoogleProvider from "next-auth/providers/google";
+import TwitterProvider from "next-auth/providers/twitter";
+
 import { env } from "@/env.mjs";
 import { prisma } from "@/server/db";
+import { type JWT } from "next-auth/jwt";
+import { type AdapterUser } from "next-auth/adapters";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -30,6 +44,31 @@ declare module "next-auth" {
   // }
 }
 
+type CallbackParams = {
+  user: User | null;
+  account: Account | null;
+  email?: { verificationRequest?: boolean };
+  profile?: Profile | undefined;
+};
+
+type JWTCallbackParams = {
+  token: JWT;
+  user: User | AdapterUser;
+  account: Account | null;
+  profile?: Profile | undefined;
+  trigger?: "signIn" | "signUp" | "update" | undefined;
+  isNewUser?: boolean | undefined;
+  session?: Session;
+};
+
+type SessionCallbackParams = {
+  session: DefaultSession;
+  token: JWT;
+  user: AdapterUser;
+  newSession: DefaultSession;
+  trigger: "update";
+};
+
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
  *
@@ -37,19 +76,71 @@ declare module "next-auth" {
  */
 export const authOptions: NextAuthOptions = {
   callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
+    jwt(params: JWTCallbackParams) {
+      const { token, account, profile } = params;
+      if (account?.provider === "discord" && profile) {
+        token.discordProfile = profile;
+      }
+      return token;
+    },
+
+    session: (params: SessionCallbackParams) => {
+      const { session, token, user } = params;
+      // if (session && session.user && token?.discordProfile) {
+      //   session.user = {
+      //     ...session.user,
+      //     discordProfile: token.discordProfile,
+      //   } as User & { discordProfile: DiscordProfile };
+      // }
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: user.id,
+        },
+      };
+    },
+
+    async signIn(params: CallbackParams) {
+      const { user, account } = params;
+      if (account?.provider === "discord") {
+        const response = await fetch(`https://discord.com/api/users/@me`, {
+          headers: {
+            Authorization: `Bearer ${account.access_token as string}`,
+          },
+        });
+        const data = (await response.json()) as DiscordProfile;
+
+        if (user) {
+          user.name = `${data.username}#${data.discriminator}`;
+          user.image = `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png`;
+        }
+      }
+      return true;
+    },
   },
   adapter: PrismaAdapter(prisma),
   providers: [
+    GoogleProvider({
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
+    }),
+    FacebookProvider({
+      clientId: env.FACEBOOK_CLIENT_ID,
+      clientSecret: env.FACEBOOK_CLIENT_SECRET,
+    }),
     DiscordProvider({
       clientId: env.DISCORD_CLIENT_ID,
       clientSecret: env.DISCORD_CLIENT_SECRET,
+    }),
+    GitHubProvider({
+      clientId: env.GITHUB_CLIENT_ID,
+      clientSecret: env.GITHUB_CLIENT_SECRET,
+    }),
+    TwitterProvider({
+      clientId: env.TWITTER_CLIENT_ID,
+      clientSecret: env.TWITTER_CLIENT_SECRET,
+      version: "2.0", // opt-in to Twitter OAuth 2.0
     }),
     /**
      * ...add more providers here.
