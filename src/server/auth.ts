@@ -22,6 +22,7 @@ import { env } from "@/env.mjs";
 import { prisma } from "@/server/db";
 import { type JWT } from "next-auth/jwt";
 import { type AdapterUser } from "next-auth/adapters";
+import { type NextAuthSessionUser } from "@/types";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -31,11 +32,7 @@ import { type AdapterUser } from "next-auth/adapters";
  */
 declare module "next-auth" {
   interface Session extends DefaultSession {
-    user: {
-      id: string;
-      // ...other properties
-      // role: UserRole;
-    } & DefaultSession["user"];
+    user: NextAuthSessionUser;
   }
 
   // interface User {
