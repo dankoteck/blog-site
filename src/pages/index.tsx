@@ -14,8 +14,8 @@ import {
 } from "@chakra-ui/react";
 import { MagnifyingGlassIcon, UserIcon } from "@heroicons/react/20/solid";
 
-import AccountMenu from "@/container/AccountMenu";
-import AuthModal from "@/container/AuthModal";
+import AccountMenu from "@/containers/AccountMenu";
+import AuthModal from "@/containers/AuthModal";
 
 export default function Home() {
   const { isOpen, onOpen, onClose } = useDisclosure();

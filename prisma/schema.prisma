@@ -14,12 +14,6 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Example {
-    id        String   @id @default(cuid())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-}
-
 // Necessary for Next auth
 model Account {
     id                String  @id @default(cuid())
@@ -63,4 +57,149 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+model Comment {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    content   String
+    author    Author   @relation(fields: [authorId], references: [id])
+    authorId  String
+    story     Story    @relation(fields: [storyId], references: [id])
+    storyId   String
+}
+
+model Reaction {
+    id        String            @id @default(cuid())
+    type      String
+    createdAt DateTime          @default(now())
+    updatedAt DateTime          @updatedAt
+    stories   StoryOnReaction[]
+}
+
+model Topic {
+    id        String         @id @default(cuid())
+    name      String
+    createdAt DateTime       @default(now())
+    updatedAt DateTime       @updatedAt
+    stories   StoryOnTopic[]
+}
+
+model StoryOnTopic {
+    story   Story  @relation(fields: [storyId], references: [id])
+    storyId String // relation scalar field (used in the `@relation` attribute above)
+    topic   Topic  @relation(fields: [topicId], references: [id])
+    topicId String // relation scalar field (used in the `@relation` attribute above)
+
+    @@id([storyId, topicId])
+}
+
+model StoryOnReaction {
+    story      Story    @relation(fields: [storyId], references: [id])
+    storyId    String // relation scalar field (used in the `@relation` attribute above)
+    reaction   Reaction @relation(fields: [reactionId], references: [id])
+    reactionId String // relation scalar field (used in the `@relation` attribute above)
+
+    @@id([storyId, reactionId])
+}
+
+model StoryBlockedByAuthor {
+    story    Story  @relation(fields: [storyId], references: [id])
+    storyId  String // relation scalar field (used in the `@relation` attribute above)
+    author   Author @relation(fields: [authorId], references: [id])
+    authorId String // relation scalar field (used in the `@relation` attribute above)
+
+    @@id([storyId, authorId])
+}
+
+model StoryInAuthorCollections {
+    story    Story  @relation(fields: [storyId], references: [id])
+    storyId  String // relation scalar field (used in the `@relation` attribute above)
+    author   Author @relation(fields: [authorId], references: [id])
+    authorId String // relation scalar field (used in the `@relation` attribute above)
+
+    @@id([storyId, authorId])
+}
+
+model StoryInAuthorBookmarked {
+    story    Story  @relation(fields: [storyId], references: [id])
+    storyId  String // relation scalar field (used in the `@relation` attribute above)
+    author   Author @relation(fields: [authorId], references: [id])
+    authorId String // relation scalar field (used in the `@relation` attribute above)
+
+    @@id([storyId, authorId])
+}
+
+model StoryInAuthorPinned {
+    story    Story  @relation(fields: [storyId], references: [id])
+    storyId  String // relation scalar field (used in the `@relation` attribute above)
+    author   Author @relation(fields: [authorId], references: [id])
+    authorId String // relation scalar field (used in the `@relation` attribute above)
+
+    @@id([storyId, authorId])
+}
+
+model Story {
+    id           String            @id @default(cuid())
+    createdAt    DateTime          @default(now())
+    updatedAt    DateTime          @updatedAt
+    title        String
+    content      String
+    viewed       Int
+    topics       StoryOnTopic[]
+    reactions    StoryOnReaction[]
+    thumbnailURL String
+    readingTime  DateTime
+    comments     Comment[]
+
+    author   Author @relation(fields: [authorId], references: [id])
+    authorId String
+
+    blockedByAuthor   StoryBlockedByAuthor[]
+    authorCollections StoryInAuthorCollections[]
+    authorBookmarked  StoryInAuthorBookmarked[]
+    authorPinned      StoryInAuthorPinned[]
+}
+
+model Author {
+    id             String                     @id @default(cuid())
+    createdAt      DateTime                   @default(now())
+    updatedAt      DateTime                   @updatedAt
+    name           String
+    username       String                     @unique
+    email          String                     @unique
+    password       String
+    avatarURL      String
+    bio            String
+    stories        Story[]
+    blockedStories StoryBlockedByAuthor[]
+    collections    StoryInAuthorCollections[]
+    bookmarked     StoryInAuthorBookmarked[]
+    pinned         StoryInAuthorPinned[]
+    subscribe      Subscribe[]                @relation("subscribe")
+    blockedAuthor  BlockedAuthor[]            @relation("blockedAuthor")
+    followedBy     Follow[]                   @relation("followedBy")
+    following      Follow[]                   @relation("following")
+    Comment        Comment[]
+}
+
+model BlockedAuthor {
+    blockedAuthor   Author @relation("blockedAuthor", fields: [blockedAuthorId], references: [id])
+    blockedAuthorId String @id
+}
+
+model Subscribe {
+    subscribe   Author @relation("subscribe", fields: [subscribeId], references: [id])
+    subscribeId String @id
+}
+
+// explicit many-to-many relation Follows
+model Follow {
+    followedBy   Author @relation("followedBy", fields: [followedById], references: [id])
+    followedById String
+    following    Author @relation("following", fields: [followingId], references: [id])
+    followingId  String
+
+    @@id([followedById, followingId])
 }
