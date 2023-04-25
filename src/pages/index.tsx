@@ -2,12 +2,17 @@ import { useSession } from "next-auth/react";
 import Head from "next/head";
 import NextLink from "next/link";
 import {
+  Box,
   Button,
+  Container,
   Flex,
+  Grid,
+  GridItem,
   Input,
   InputGroup,
   InputLeftElement,
   Link,
+  SimpleGrid,
   Stack,
   Text,
   useDisclosure,
@@ -33,46 +38,60 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="min-h-screen">
-        <header>
-          <Flex
-            p={4}
-            borderBottom="1px"
-            borderColor="gray.200"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Link _hover={{ textDecoration: "none" }} href="/" as={NextLink}>
-              <Text fontSize={["xl", "2xl", "3xl"]}>BLOG SITE</Text>
-            </Link>
-            <InputGroup width="fit-content">
-              <InputLeftElement pointerEvents="none">
-                <MagnifyingGlassIcon width={20} />
-              </InputLeftElement>
-              <Input
-                width={[200, 200, 400, 500]}
-                placeholder="Search anything..."
-              />
-            </InputGroup>
-            {user ? (
-              <AccountMenu user={user} />
-            ) : (
-              <Stack direction="row" alignItems="center">
-                <Button
-                  onClick={onOpen}
-                  size={"sm"}
-                  leftIcon={<UserIcon className="h-6 w-6" />}
-                  colorScheme="purple"
-                  variant="solid"
-                >
-                  Login
-                </Button>
-              </Stack>
-            )}
-          </Flex>
+      <header>
+        <Flex
+          p={4}
+          borderBottom="1px"
+          borderColor="gray.200"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <Link _hover={{ textDecoration: "none" }} href="/" as={NextLink}>
+            <Text fontSize={["xl", "2xl", "3xl"]}>BLOG SITE</Text>
+          </Link>
+          <InputGroup width="fit-content">
+            <InputLeftElement pointerEvents="none">
+              <MagnifyingGlassIcon width={20} />
+            </InputLeftElement>
+            <Input
+              width={[200, 200, 400, 500]}
+              placeholder="Search anything..."
+            />
+          </InputGroup>
+          {user ? (
+            <AccountMenu user={user} />
+          ) : (
+            <Stack direction="row" alignItems="center">
+              <Button
+                onClick={onOpen}
+                size={"sm"}
+                leftIcon={<UserIcon className="h-6 w-6" />}
+                colorScheme="purple"
+                variant="solid"
+              >
+                Login
+              </Button>
+            </Stack>
+          )}
+        </Flex>
 
-          <AuthModal isOpen={isOpen} onClose={onClose} />
-        </header>
+        <AuthModal isOpen={isOpen} onClose={onClose} />
+      </header>
+
+      <main className="my-16 min-h-screen">
+        <Container maxW="container.lg" centerContent>
+          <Grid w="full" h="100vh" templateColumns="repeat(12, 1fr)">
+            <GridItem
+              colSpan={4}
+              borderRight={1}
+              borderRightStyle="solid"
+              borderRightColor="gray.300"
+            >
+              Aside
+            </GridItem>
+            <GridItem colSpan={8}>Section</GridItem>
+          </Grid>
+        </Container>
       </main>
     </>
   );

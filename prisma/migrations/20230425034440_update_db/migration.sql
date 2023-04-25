@@ -1,11 +1,4 @@
 -- CreateTable
-CREATE TABLE "Example" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
-);
-
--- CreateTable
 CREATE TABLE "Account" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "userId" TEXT NOT NULL,
@@ -34,7 +27,7 @@ CREATE TABLE "Session" (
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL PRIMARY KEY,
-    "name" TEXT,
+    "name" TEXT NOT NULL,
     "email" TEXT,
     "emailVerified" DATETIME,
     "image" TEXT
@@ -76,33 +69,33 @@ CREATE TABLE "Topic" (
 );
 
 -- CreateTable
-CREATE TABLE "StoryOnTopic" (
+CREATE TABLE "StoryTopic" (
     "storyId" TEXT NOT NULL,
     "topicId" TEXT NOT NULL,
 
     PRIMARY KEY ("storyId", "topicId"),
-    CONSTRAINT "StoryOnTopic_storyId_fkey" FOREIGN KEY ("storyId") REFERENCES "Story" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "StoryOnTopic_topicId_fkey" FOREIGN KEY ("topicId") REFERENCES "Topic" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "StoryTopic_storyId_fkey" FOREIGN KEY ("storyId") REFERENCES "Story" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "StoryTopic_topicId_fkey" FOREIGN KEY ("topicId") REFERENCES "Topic" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateTable
-CREATE TABLE "StoryOnReaction" (
+CREATE TABLE "StoryReaction" (
     "storyId" TEXT NOT NULL,
     "reactionId" TEXT NOT NULL,
 
     PRIMARY KEY ("storyId", "reactionId"),
-    CONSTRAINT "StoryOnReaction_storyId_fkey" FOREIGN KEY ("storyId") REFERENCES "Story" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "StoryOnReaction_reactionId_fkey" FOREIGN KEY ("reactionId") REFERENCES "Reaction" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "StoryReaction_storyId_fkey" FOREIGN KEY ("storyId") REFERENCES "Story" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "StoryReaction_reactionId_fkey" FOREIGN KEY ("reactionId") REFERENCES "Reaction" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateTable
-CREATE TABLE "StoryBlockedByAuthor" (
+CREATE TABLE "StoryBlocked" (
     "storyId" TEXT NOT NULL,
     "authorId" TEXT NOT NULL,
 
     PRIMARY KEY ("storyId", "authorId"),
-    CONSTRAINT "StoryBlockedByAuthor_storyId_fkey" FOREIGN KEY ("storyId") REFERENCES "Story" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "StoryBlockedByAuthor_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "Author" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "StoryBlocked_storyId_fkey" FOREIGN KEY ("storyId") REFERENCES "Story" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "StoryBlocked_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "Author" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -142,9 +135,9 @@ CREATE TABLE "Story" (
     "updatedAt" DATETIME NOT NULL,
     "title" TEXT NOT NULL,
     "content" TEXT NOT NULL,
-    "viewed" INTEGER NOT NULL,
-    "thumbnailURL" TEXT NOT NULL,
-    "readingTime" DATETIME NOT NULL,
+    "viewed" INTEGER NOT NULL DEFAULT 0,
+    "thumbnailURL" TEXT DEFAULT '',
+    "readingTime" TEXT NOT NULL DEFAULT '0 min read',
     "authorId" TEXT NOT NULL,
     CONSTRAINT "Story_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "Author" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
@@ -154,12 +147,10 @@ CREATE TABLE "Author" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
-    "name" TEXT NOT NULL,
-    "username" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
-    "avatarURL" TEXT NOT NULL,
-    "bio" TEXT NOT NULL
+    "username" TEXT,
+    "bio" TEXT,
+    "userId" TEXT NOT NULL,
+    CONSTRAINT "Author_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -169,19 +160,19 @@ CREATE TABLE "BlockedAuthor" (
 );
 
 -- CreateTable
-CREATE TABLE "Subscribe" (
+CREATE TABLE "SubscribeAuthor" (
     "subscribeId" TEXT NOT NULL PRIMARY KEY,
-    CONSTRAINT "Subscribe_subscribeId_fkey" FOREIGN KEY ("subscribeId") REFERENCES "Author" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "SubscribeAuthor_subscribeId_fkey" FOREIGN KEY ("subscribeId") REFERENCES "Author" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateTable
-CREATE TABLE "Follow" (
+CREATE TABLE "FollowsAuthor" (
     "followedById" TEXT NOT NULL,
     "followingId" TEXT NOT NULL,
 
     PRIMARY KEY ("followedById", "followingId"),
-    CONSTRAINT "Follow_followedById_fkey" FOREIGN KEY ("followedById") REFERENCES "Author" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Follow_followingId_fkey" FOREIGN KEY ("followingId") REFERENCES "Author" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "FollowsAuthor_followedById_fkey" FOREIGN KEY ("followedById") REFERENCES "Author" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "FollowsAuthor_followingId_fkey" FOREIGN KEY ("followingId") REFERENCES "Author" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateIndex
@@ -203,4 +194,4 @@ CREATE UNIQUE INDEX "VerificationToken_identifier_token_key" ON "VerificationTok
 CREATE UNIQUE INDEX "Author_username_key" ON "Author"("username");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Author_email_key" ON "Author"("email");
+CREATE UNIQUE INDEX "Author_userId_key" ON "Author"("userId");

@@ -76,11 +76,11 @@ export default function AccountMenu({ user }: Props) {
       </MenuButton>
 
       <MenuList>
-        {contextMenu.map(({ key, label, variant, icon: Icon }) =>
+        {contextMenu.map(({ key, label, variant, icon: Icon, onClick }) =>
           key.includes("DIVIDER") ? (
             <MenuDivider key={key} />
           ) : (
-            <MenuItem key={key} textAlign="right">
+            <MenuItem key={key} textAlign="right" onClick={onClick}>
               <HStack spacing={4} color={variant ?? ""}>
                 {Icon}
                 <span>{label}</span>
