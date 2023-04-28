@@ -57,148 +57,79 @@ model Comment {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
     content   String
-    authorId  String
-    storyId   String
-    story     Story    @relation(fields: [storyId], references: [id])
-    author    Author   @relation(fields: [authorId], references: [id])
+
+    story   Story  @relation(fields: [storyId], references: [id])
+    storyId String
+
+    author   Author @relation(fields: [authorId], references: [id])
+    authorId String
 }
 
 model Reaction {
-    id        String          @id @default(cuid())
+    id        String   @id @default(cuid())
     type      String
-    createdAt DateTime        @default(now())
-    updatedAt DateTime        @updatedAt
-    stories   StoryReaction[]
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    stories Story[] @relation("StoryReaction")
 }
 
 model Topic {
-    id         String               @id @default(cuid())
-    name       String
-    createdAt  DateTime             @default(now())
-    updatedAt  DateTime             @updatedAt
-    followedBy AuthorFollowsTopic[]
-    stories    StoryTopic[]
-}
+    id        String   @id @default(cuid())
+    name      String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
-model AuthorFollowsTopic {
-    authorId String
-    topicId  String
-    author   Author @relation(fields: [authorId], references: [id])
-    topic    Topic  @relation(fields: [topicId], references: [id])
-
-    @@id([authorId, topicId])
-}
-
-model StoryTopic {
-    storyId String
-    topicId String
-    topic   Topic  @relation(fields: [topicId], references: [id])
-    story   Story  @relation(fields: [storyId], references: [id])
-
-    @@id([storyId, topicId])
-}
-
-model StoryReaction {
-    storyId    String
-    reactionId String
-    reaction   Reaction @relation(fields: [reactionId], references: [id])
-    story      Story    @relation(fields: [storyId], references: [id])
-
-    @@id([storyId, reactionId])
-}
-
-model StoryBlocked {
-    storyId  String
-    authorId String
-    author   Author @relation(fields: [authorId], references: [id])
-    story    Story  @relation(fields: [storyId], references: [id])
-
-    @@id([storyId, authorId])
-}
-
-model StoryInAuthorCollections {
-    storyId  String
-    authorId String
-    author   Author @relation(fields: [authorId], references: [id])
-    story    Story  @relation(fields: [storyId], references: [id])
-
-    @@id([storyId, authorId])
-}
-
-model StoryInAuthorBookmarked {
-    storyId  String
-    authorId String
-    author   Author @relation(fields: [authorId], references: [id])
-    story    Story  @relation(fields: [storyId], references: [id])
-
-    @@id([storyId, authorId])
-}
-
-model StoryInAuthorPinned {
-    storyId  String
-    authorId String
-    author   Author @relation(fields: [authorId], references: [id])
-    story    Story  @relation(fields: [storyId], references: [id])
-
-    @@id([storyId, authorId])
+    authorFollowings Author[] @relation("TopicAuthorFollowings")
+    stories          Story[]  @relation("TopicStory")
 }
 
 model Story {
-    id                String                     @id @default(cuid())
-    createdAt         DateTime                   @default(now())
-    updatedAt         DateTime                   @updatedAt
-    title             String
-    content           String
-    viewed            Int                        @default(0)
-    thumbnailURL      String?                    @default("")
-    readingTime       String                     @default("0 min read")
-    authorId          String
-    comments          Comment[]
-    author            Author                     @relation(fields: [authorId], references: [id])
-    blockedByAuthor   StoryBlocked[]
-    authorBookmarked  StoryInAuthorBookmarked[]
-    authorCollections StoryInAuthorCollections[]
-    authorPinned      StoryInAuthorPinned[]
-    reactions         StoryReaction[]
-    topics            StoryTopic[]
+    id           String    @id @default(cuid())
+    createdAt    DateTime  @default(now())
+    updatedAt    DateTime  @updatedAt
+    title        String
+    content      String
+    viewed       Int       @default(0)
+    thumbnailURL String?   @default("")
+    readingTime  String    @default("0 min read")
+    comments     Comment[]
+
+    author   Author @relation(fields: [authorId], references: [id])
+    authorId String
+
+    topics        Topic[]    @relation("TopicStory")
+    reactions     Reaction[] @relation("StoryReaction")
+    pinnedBy      Author[]   @relation("StoryPinned")
+    blockedBy     Author[]   @relation("StoryBlocked")
+    bookmarkedBy  Author[]   @relation("StoryBookmarked")
+    inCollections Author[]   @relation("StoryCollections")
 }
 
 model Author {
-    id             String                     @id @default(cuid())
-    createdAt      DateTime                   @default(now())
-    updatedAt      DateTime                   @updatedAt
-    username       String?                    @unique
-    bio            String?
-    userId         String                     @unique
-    user           User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
-    blockedAuthor  BlockedAuthor?             @relation("blockedAuthor")
-    comment        Comment[]
-    following      FollowsAuthor[]            @relation("following")
-    followedBy     FollowsAuthor[]            @relation("followedBy")
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    username  String?  @unique
+    bio       String?
+
+    userId String @unique
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    comments Comment[]
+
+    blockedAuthors   Author[] @relation("AuthorBlocked")
+    blockedByAuthors Author[] @relation("AuthorBlocked")
+    followings       Author[] @relation("AuthorFollow")
+    followers        Author[] @relation("AuthorFollow")
+    subscribers      Author[] @relation("AuthorSubscribe")
+    subscribings     Author[] @relation("AuthorSubscribe")
+
     stories        Story[]
-    blockedStories StoryBlocked[]
-    bookmarked     StoryInAuthorBookmarked[]
-    collections    StoryInAuthorCollections[]
-    pinned         StoryInAuthorPinned[]
-    subscribe      SubscribeAuthor?           @relation("subscribe")
-    topicFollows   AuthorFollowsTopic[]
-}
+    blockedStories Story[] @relation("StoryBlocked")
+    bookmarked     Story[] @relation("StoryBookmarked")
+    collections    Story[] @relation("StoryCollections")
+    pinned         Story[] @relation("StoryPinned")
 
-model BlockedAuthor {
-    blockedAuthorId String @id
-    blockedAuthor   Author @relation("blockedAuthor", fields: [blockedAuthorId], references: [id])
-}
-
-model SubscribeAuthor {
-    subscribeId String @id
-    subscribe   Author @relation("subscribe", fields: [subscribeId], references: [id])
-}
-
-model FollowsAuthor {
-    followedById String
-    followingId  String
-    following    Author @relation("following", fields: [followingId], references: [id])
-    followedBy   Author @relation("followedBy", fields: [followedById], references: [id])
-
-    @@id([followedById, followingId])
+    followingTopics Topic[] @relation("TopicAuthorFollowings")
 }

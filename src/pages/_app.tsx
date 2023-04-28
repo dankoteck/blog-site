@@ -14,6 +14,7 @@ import { api } from "@/utils/api";
 import "@/styles/globals.css";
 import { useState } from "react";
 import { type DehydratedState } from "react-query";
+import BaseLayout from "@/layouts/base";
 
 const MyApp: AppType<{
   session: Session | null;
@@ -26,7 +27,9 @@ const MyApp: AppType<{
       <Hydrate state={pageProps.dehydratedState}>
         <SessionProvider session={session}>
           <ChakraProvider>
-            <Component {...pageProps} />
+            <BaseLayout>
+              <Component {...pageProps} />
+            </BaseLayout>
           </ChakraProvider>
         </SessionProvider>
       </Hydrate>
