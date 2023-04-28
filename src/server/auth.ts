@@ -5,8 +5,8 @@ import type {
   DefaultSession,
   NextAuthOptions,
   Profile,
-  User,
   Session,
+  User,
 } from "next-auth";
 import { getServerSession } from "next-auth";
 
@@ -16,13 +16,12 @@ import DiscordProvider, {
 import FacebookProvider from "next-auth/providers/facebook";
 import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
-import TwitterProvider from "next-auth/providers/twitter";
 
 import { env } from "@/env.mjs";
 import { prisma } from "@/server/db";
-import { type JWT } from "next-auth/jwt";
-import { type AdapterUser } from "next-auth/adapters";
 import { type NextAuthSessionUser } from "@/types";
+import { type AdapterUser } from "next-auth/adapters";
+import { type JWT } from "next-auth/jwt";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -133,11 +132,6 @@ export const authOptions: NextAuthOptions = {
     GitHubProvider({
       clientId: env.GITHUB_CLIENT_ID,
       clientSecret: env.GITHUB_CLIENT_SECRET,
-    }),
-    TwitterProvider({
-      clientId: env.TWITTER_CLIENT_ID,
-      clientSecret: env.TWITTER_CLIENT_SECRET,
-      version: "2.0", // opt-in to Twitter OAuth 2.0
     }),
     /**
      * ...add more providers here.
